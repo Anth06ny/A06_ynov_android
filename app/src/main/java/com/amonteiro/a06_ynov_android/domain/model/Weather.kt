@@ -5,10 +5,12 @@ import kotlinx.serialization.Serializable
 //Possible qu'il y ait besoin de cette annotation en fonction du compilateur
 @Serializable //KotlinX impose cette annotation
 data class Weather(
-    val id: Int,
-    val name: String,
-    val temp: Double,
-    val speed: Double,
-    val description: String,
-    val icon: String,
-)
+    var id: Int, //id d'un point météo
+    var name: String,
+    var temp: Double, //Température
+    var speed: Double, //Vitesse du vent
+    var description: String, //1er description
+    var icon: String //1er icone
+) {
+
+}

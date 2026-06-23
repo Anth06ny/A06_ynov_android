@@ -1,39 +1,44 @@
 package com.amonteiro.a06_ynov_android.data.remote
 
-import android.R.attr.description
+import android.util.Log.w
 import com.amonteiro.a06_ynov_android.domain.model.Weather
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
-import io.ktor.client.request.*
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.coroutines.flow.flow
+import io.ktor.http.ContentType
+import io.ktor.http.isSuccess
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 //Suspend sera expliqué dans le chapitre des coroutines
 suspend fun main() {
 
-    val weathers = WeatherApiDataSource.loadWeathers("toulouse")
-    println(weathers)
+    val weathers = WeatherApiDataSource.loadWeathers("Nice")
+    for(w in weathers) {
+        println(
+            """
+        Il fait ${w.temp}° à ${w.name} (id=${w.id}) avec un vent de ${w.speed} m/s
+        -Description : ${w.description}
+        -Icône : ${w.icon}
+    """.trimIndent()
+        )
+    }
 
-
-//    val list : List<MuseumDTO> = KtorMuseumApi.loadMuseums()
-//    println(list.joinToString(separator = "\n\n"))
-//    KtorMuseumApi.close()
 }
 
 object WeatherApiDataSource {
     private const val API_URL =
-        "https://www.amonteiro.fr/api/weather?cityname=toulouse"
+        "https://www.amonteiro.fr/api/weather?cityname="
 
     //Création et réglage du client
-    private val client  = HttpClient {
+    private val client = HttpClient {
         install(Logging) {
             //(import io.ktor.client.plugins.logging.Logger)
             logger = object : Logger {
@@ -52,25 +57,53 @@ object WeatherApiDataSource {
         //engine { proxy = ProxyBuilder.http("monproxy:1234") }
     }
 
-    suspend fun loadWeathers(cityName : String): List<Weather> {
-        val response = client.get(API_URL)
+    suspend fun loadWeathers(cityName: String): List<Weather> {
+        val response = client.get("https://api.openweathermap.org/data/2.5/find?q=$cityName&appid=b80967f0a6bd10d23e44848547b26550&units=metric&lang=fr")
         if (!response.status.isSuccess()) {
             throw Exception("Erreur API: ${response.status} - ${response.bodyAsText()}")
         }
 
-        var list =  response.body<List<Weather>>()
+        var result = response.body<WeatherResultDTO>()
+        println(result)
+        //Si je devais faire un Wrapper
+        val listSortie = ArrayList<Weather>()
+        for (w in result.list) {
+            listSortie.add(
+                Weather(
+                    id = w.id,
+                    name = w.name,
+                    temp = w.main.temp,
+                    description = w.weather.firstOrNull()?.description ?: "-",
+                    speed = w.wind.speed,
+                    icon = w.weather.firstOrNull()?.icon ?: ""
+                )
+            )
+        }
+
+        return listSortie
+    }
+
+    suspend fun loadWeathersVFacile(cityName: String): List<Weather> {
+        val response = client.get(API_URL + cityName)
+        if (!response.status.isSuccess()) {
+            throw Exception("Erreur API: ${response.status} - ${response.bodyAsText()}")
+        }
+
+        var list = response.body<List<Weather>>()
 
         //Si je devais faire un Wrapper
         val listSortie = ArrayList<Weather>()
-        for(w in list ){
-            listSortie.add(Weather(
-                id = w.id,
-                name = w.name,
-                temp = w.temp,
-                description = w.description,
-                speed = w.speed,
-                icon =  w.icon
-            ))
+        for (w in list) {
+            listSortie.add(
+                Weather(
+                    id = w.id,
+                    name = w.name,
+                    temp = w.temp,
+                    description = w.description,
+                    speed = w.speed,
+                    icon = w.icon
+                )
+            )
         }
 
         return listSortie
@@ -80,5 +113,27 @@ object WeatherApiDataSource {
 /* -------------------------------- */
 // DTO
 /* -------------------------------- */
+@kotlinx.serialization.Serializable
+data class WeatherResultDTO(
+    val list: List<WeatherDTO>
+)
+
+@kotlinx.serialization.Serializable
+data class WeatherDTO(
+    val id: Int,
+    val name: String,
+    val main: TempDTO,
+    val wind: WindDTO,
+    val weather: List<DescriptionDTO>
+)
+
+@kotlinx.serialization.Serializable
+data class TempDTO(val temp: Double)
+
+@kotlinx.serialization.Serializable
+data class WindDTO(val speed: Double)
+
+@Serializable
+data class DescriptionDTO(val icon: String, val description: String)
 
 
