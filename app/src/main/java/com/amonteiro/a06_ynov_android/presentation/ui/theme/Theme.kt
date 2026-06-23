@@ -1,6 +1,5 @@
-package com.amonteiro.a06_ynov_android.ui.theme
+package com.amonteiro.a06_ynov_android.presentation.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

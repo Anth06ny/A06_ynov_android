@@ -14,6 +14,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -21,14 +22,8 @@ import kotlinx.serialization.json.Json
 suspend fun main() {
 
     val weathers = WeatherApiDataSource.loadWeathers("Nice")
-    for(w in weathers) {
-        println(
-            """
-        Il fait ${w.temp}° à ${w.name} (id=${w.id}) avec un vent de ${w.speed} m/s
-        -Description : ${w.description}
-        -Icône : ${w.icon}
-    """.trimIndent()
-        )
+    for (w in weathers) {
+        println(w.getResume())
     }
 
 }
@@ -59,28 +54,23 @@ object WeatherApiDataSource {
 
     suspend fun loadWeathers(cityName: String): List<Weather> {
         val response = client.get("https://api.openweathermap.org/data/2.5/find?q=$cityName&appid=b80967f0a6bd10d23e44848547b26550&units=metric&lang=fr")
+
         if (!response.status.isSuccess()) {
             throw Exception("Erreur API: ${response.status} - ${response.bodyAsText()}")
         }
 
         var result = response.body<WeatherResultDTO>()
-        println(result)
-        //Si je devais faire un Wrapper
-        val listSortie = ArrayList<Weather>()
-        for (w in result.list) {
-            listSortie.add(
-                Weather(
-                    id = w.id,
-                    name = w.name,
-                    temp = w.main.temp,
-                    description = w.weather.firstOrNull()?.description ?: "-",
-                    speed = w.wind.speed,
-                    icon = w.weather.firstOrNull()?.icon ?: ""
-                )
+
+        return result.list.map { w ->
+            Weather(
+                id = w.id,
+                name = w.name,
+                temp = w.main.temp,
+                description = w.weather.firstOrNull()?.description ?: "-",
+                speed = w.wind.speed,
+                icon = "https://openweathermap.org/img/wn/${w.weather.firstOrNull()?.icon}@4x.png"
             )
         }
-
-        return listSortie
     }
 
     suspend fun loadWeathersVFacile(cityName: String): List<Weather> {
