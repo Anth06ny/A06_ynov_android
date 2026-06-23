@@ -12,5 +12,9 @@ data class Weather(
     var description: String, //1er description
     var icon: String //1er icone
 ) {
-
+    fun getResume() = """
+            Il fait $temp° à $name (id=$id) avec un vent de $speed m/s
+            -Description : $description
+            -Icône : $icon
+        """.trimIndent()
 }

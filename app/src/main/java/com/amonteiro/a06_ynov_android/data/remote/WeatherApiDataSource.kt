@@ -131,9 +131,7 @@ data class WeatherDTO(
 data class TempDTO(val temp: Double)
 
 @kotlinx.serialization.Serializable
-data class WindDTO(val speed: Double)
+data class WindDTO(var speed: Double)
 
 @Serializable
 data class DescriptionDTO(val icon: String, val description: String)
-
-
