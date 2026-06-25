@@ -14,7 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.amonteiro.a06_ynov_android.presentation.ui.theme.A06_ynov_androidTheme
+import com.amonteiro.a06_ynov_android.presentation.viewmodel.MainViewModel
 
 @Preview(showBackground = true, showSystemUi = true)
 @Preview(showBackground = true, showSystemUi = true,
@@ -25,22 +27,28 @@ fun SearchScreenPreview() {
     //Utilisé par exemple dans MainActivity.kt sous setContent {...}
     A06_ynov_androidTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            SearchScreen(modifier = Modifier.padding(innerPadding))
+            val mainViewModel = MainViewModel()
+            mainViewModel.loadFakeData()
+            SearchScreen(modifier = Modifier.padding(innerPadding), mainViewModel=  mainViewModel)
         }
     }
 }
 
 @Composable
-fun SearchScreen(modifier: Modifier = Modifier) {
+fun SearchScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = MainViewModel()) {
 
+    val list = mainViewModel.dataList.collectAsStateWithLifecycle().value
 
     Column(modifier= modifier) {
         Text(text = "Text1",fontSize = 20.sp)
         Spacer(Modifier.size(8.dp))
-        Text(text = "Text2",fontSize = 14.sp)
+        Text(text = "Text2",fontSize = 14.sp,
+            modifier = Modifier.padding(10.dp)
+            )
 
-        PictureRowItem("ghjk")
-        PictureRowItem("fghjkl")
+        list.forEach {
+            PictureRowItem(it.name)
+        }
     }
 }
 
