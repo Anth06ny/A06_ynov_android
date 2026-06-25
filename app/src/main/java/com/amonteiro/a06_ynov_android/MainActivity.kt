@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.amonteiro.a06_ynov_android.presentation.ui.screens.SearchScreen
-import com.amonteiro.a06_ynov_android.presentation.ui.theme.A06_ynov_androidTheme
+import com.amonteiro.a06_ynov_android.presentation.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
 
 
         setContent {
-            A06_ynov_androidTheme {
+            AppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     println("coucou")
                     SearchScreen(
