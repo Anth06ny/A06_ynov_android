@@ -2,6 +2,7 @@ package com.amonteiro.a06_ynov_android.presentation.ui.screens
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -46,6 +48,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.amonteiro.a06_ynov_android.R
 import com.amonteiro.a06_ynov_android.domain.model.Weather
+import com.amonteiro.a06_ynov_android.presentation.ui.MyError
 import com.amonteiro.a06_ynov_android.presentation.ui.theme.AppTheme
 import com.amonteiro.a06_ynov_android.presentation.viewmodel.MainViewModel
 
@@ -61,7 +64,7 @@ fun SearchScreenPreview() {
     AppTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             val mainViewModel = MainViewModel()
-            mainViewModel.loadFakeData()
+            mainViewModel.loadFakeData(true, "Un message d'erreur")
             SearchScreen(modifier = Modifier.padding(innerPadding), mainViewModel = mainViewModel)
         }
     }
@@ -96,11 +99,22 @@ fun SearchScreen(modifier: Modifier = Modifier, mainViewModel: MainViewModel = v
 
         var searchText = rememberSaveable { mutableStateOf("") }
 
-        val list = mainViewModel.dataList.collectAsStateWithLifecycle().value.filter {
-            it.name.contains(searchText.value, true)
-        }
+        val list = mainViewModel.dataList.collectAsStateWithLifecycle().value
+//            .filter {
+//                 it.name.contains(searchText.value, true)
+//            }
+
+        val errorMessage = mainViewModel.errorMessage.collectAsStateWithLifecycle().value
+        val runInProgress = mainViewModel.runInProgress.collectAsStateWithLifecycle().value
 
         SearchBar(searchText = searchText)
+
+        AnimatedVisibility (runInProgress) {
+            CircularProgressIndicator()
+        }
+
+        MyError(errorMessage = errorMessage)
+
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
             items(list.size) {

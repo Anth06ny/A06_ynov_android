@@ -32,7 +32,7 @@ class MainViewModel : ViewModel() {
 
     init {//Création d'un jeu de donnée au démarrage
         println("Instanciation de MainViewModel")
-        //loadFakeData()
+        loadWeathers("Toulouse")
     }
 
     fun loadFakeData(runInProgress :Boolean = false, errorMessage:String = "" ) {
@@ -77,6 +77,7 @@ class MainViewModel : ViewModel() {
     fun loadWeathers(cityName: String) {
         runInProgress.value = true
 
+        //tache asynchrone
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 dataList.value = WeatherApiDataSource.loadWeathers(cityName)
